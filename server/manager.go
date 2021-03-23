@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -39,14 +38,14 @@ func (manager *Manager) start() {
 		select {
 		case conn := <-manager.register:
 			manager.clients[conn] = struct{}{}
-			bytes, _ := json.Marshal(Message{Content: fmt.Sprintf("%s has connected.", conn.id)})
-			manager.send(bytes, clientMap{conn: struct{}{}})
+			m := Message{Content: fmt.Sprintf("%s has connected.", conn.name)}.String()
+			manager.send([]byte(m), clientMap{conn: struct{}{}})
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.clients, conn)
-				bytes, _ := json.Marshal(Message{Content: fmt.Sprintf("%s has disconnected.", conn.id)})
-				manager.send(bytes, clientMap{conn: struct{}{}})
+				m := (Message{Content: fmt.Sprintf("%s has disconnected.", conn.name)}).String()
+				manager.send([]byte(m), clientMap{conn: struct{}{}})
 			}
 		case msg := <-manager.broadcast:
 			manager.send(msg, nil)
@@ -87,7 +86,7 @@ func wsChat(writer http.ResponseWriter, request *http.Request) {
 		http.NotFound(writer, request)
 		return
 	}
-	client := &Client{id: uuid.NewV4().String(), socket: conn, send: make(chan []byte)}
+	client := &Client{id: uuid.NewV4().String(), name: generate(), socket: conn, send: make(chan []byte)}
 
 	defaultManager.register <- client
 	safego.Go(request.Context(), func(ctx context.Context) {

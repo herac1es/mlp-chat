@@ -5,3 +5,12 @@ type Message struct {
 	Receiver string `json:"receiver"`
 	Content  string `json:"content"`
 }
+
+func (message Message) String() string {
+	ret := ""
+	if message.Sender != "" {
+		ret += message.Sender + " 说: "
+	}
+	ret += message.Content
+	return ret
+}

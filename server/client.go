@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/gorilla/websocket"
@@ -10,6 +9,7 @@ import (
 // Client: every instance present a websocket connection
 type Client struct {
 	id     string
+	name   string
 	socket *websocket.Conn
 	send   chan []byte
 }
@@ -28,11 +28,11 @@ func (client *Client) read() {
 			}
 			break
 		}
-		bytes, _ := json.Marshal(Message{
-			Sender:  client.id,
+		msg := Message{
+			Sender:  client.name,
 			Content: string(message),
-		})
-		defaultManager.broadcast <- bytes
+		}.String()
+		defaultManager.broadcast <- []byte(msg)
 	}
 }
 
