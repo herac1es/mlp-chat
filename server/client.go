@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -22,10 +21,11 @@ func (client *Client) read() {
 	}()
 
 	for {
-		client.socket.SetWriteDeadline(time.Now().Add(time.Second * 10))
 		_, message, err := client.socket.ReadMessage()
 		if err != nil {
-			fmt.Println(err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				fmt.Println(err)
+			}
 			break
 		}
 		bytes, _ := json.Marshal(Message{

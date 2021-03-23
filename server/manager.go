@@ -75,6 +75,7 @@ func Run() {
 	safego.Go(ctx, func(ctx context.Context) {
 		defaultManager.start()
 	})
+	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws_chat", wsChat)
 	http.ListenAndServe(":5268", nil)
 }
@@ -95,4 +96,16 @@ func wsChat(writer http.ResponseWriter, request *http.Request) {
 	safego.Go(request.Context(), func(ctx context.Context) {
 		client.write()
 	})
+}
+
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "static/home.html")
 }
