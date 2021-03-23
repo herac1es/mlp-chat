@@ -26,7 +26,7 @@ func (client *Client) read() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				fmt.Println(err)
 			}
-			break
+			return
 		}
 		msg := Message{
 			Sender:  client.name,
@@ -45,6 +45,7 @@ func (client *Client) write() {
 		case msg, ok := <-client.send:
 			if !ok {
 				client.socket.WriteMessage(websocket.CloseMessage, []byte{})
+				return
 			}
 			client.socket.WriteMessage(websocket.TextMessage, msg)
 		}
